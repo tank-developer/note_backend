@@ -16,9 +16,9 @@ import java.io.ByteArrayInputStream;
 @Slf4j
 public class AliOssUtil {
 
-    private String endpoint = "oss-cn-shenzhen.aliyuncs.com";
-    private String accessKeyId = "LTAI5tQavgcx2pP9dVAAjzcp";
-    private String accessKeySecret = "JPR8ERJfJUqai77QobhgrTiLJuFB7L";
+    private String endpoint = "xxx";
+    private String accessKeyId = "xxx";
+    private String accessKeySecret = "xxx";
     private String bucketName = "note-content";
 
     /**
