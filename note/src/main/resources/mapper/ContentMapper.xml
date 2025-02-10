@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.company.note.mapper.ContentMapper">
+
+<!--  定义自定义结果集映射规则  -->
+    <!-- 定义结果集映射 -->
+    <resultMap id="NoteResultMap" type="org.company.note.entity.Content">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <!-- 动态查询当前用户的所有笔记 -->
+    <select id="selectNotesByUserId" resultMap="NoteResultMap">
+        SELECT * FROM t_note
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+        </where>
+    </select>
+    <select id="findNotesByUserNameAndUpdatedAt" resultType="org.company.note.entity.Content">
+        SELECT * FROM t_note WHERE user_id = (
+        SELECT uid FROM t_user WHERE username = #{username}
+        ) AND updated_at = #{updatedAt}
+    </select>
+
+    <!-- 根据username查询对应的id -->
+    <select id="selectIdByUsername" resultType="int">
+        SELECT uid
+        FROM t_user
+        WHERE username = #{username}
+    </select>
+
+
+    <select id="selectContentByUserName" resultType="org.company.note.entity.Content">
+        SELECT c.*
+        FROM t_note c
+                 JOIN t_user a ON c.user_id = a.uid
+        WHERE a.username = #{username}
+    </select>
+
+    <!-- 插入内容的方法 -->
+<!--    <insert id="insertContentByUsername" parameterType="map">-->
+<!--        INSERT INTO db_content (user_id, title, content, created_at, updated_at)-->
+<!--        SELECT a.id, #{title}, #{content}, NOW(), NOW()-->
+<!--        FROM db_account a-->
+<!--        WHERE a.username = #{username}-->
+<!--            LIMIT 1-->
+<!--    </insert>-->
+
+<!--    //NOW(),是插入日期和时间，CURDATE是日期-->
+    <insert id="insertContentByUsername">
+        INSERT INTO t_note (user_id, title, content, image, created_at, updated_at)
+        SELECT
+                (SELECT uid FROM t_user WHERE username = #{username}),
+                #{title},
+                #{content},
+                #{image},
+                CURDATE(),
+                CURDATE()
+            WHERE EXISTS (SELECT 1 FROM t_user WHERE username = #{username})
+    </insert>
+
+
+    <!-- 更新内容的方法 -->
+    <update id="updateContentByIdAndUsername">
+        UPDATE t_note
+        SET
+            title = #{title},
+            content = #{content},
+            updated_at = CURDATE()
+        WHERE id = #{id}
+          AND user_id = (SELECT uid FROM t_user WHERE username = #{username})
+    </update>
+
+<!--    &lt;!&ndash; 删除内容的方法 &ndash;&gt;-->
+<!--    <delete id="deleteContentByUsername">-->
+<!--        DELETE FROM db_content-->
+<!--        WHERE user_id = (SELECT id FROM db_account WHERE username = #{username})-->
+<!--    </delete>-->
+
+    <!-- 删除内容的方法 -->
+    <delete id="deleteContentByIdAndUsername">
+        DELETE FROM t_note
+        WHERE id = #{id}
+          AND user_id = (SELECT uid FROM t_user WHERE username = #{username})
+    </delete>
+
+
+    <!-- 根据username和id获取内容的方法 -->
+    <select id="selectContentByIdAndUsername" resultType="org.company.note.entity.Content">
+        SELECT id, user_id, title, content, image, created_at, updated_at
+        FROM t_note
+        WHERE id = #{id}
+          AND user_id = (SELECT uid FROM t_user WHERE username = #{username})
+    </select>
+
+
+
+    <!-- 根据username和tags的id获取db_content中的内容 -->
+    <select id="selectContentByUserIdAndTagId" resultType="org.company.note.entity.Content">
+        SELECT c.id, c.user_id, c.title, c.content, c.image, c.created_at, c.updated_at
+        FROM t_note c
+        JOIN t_user a ON c.user_id = a.uid
+        <where>
+            AND a.username = #{username} <!-- 总是需要匹配 username -->
+            <if test="tagId != null">
+                AND EXISTS (
+                SELECT 1 FROM t_note_tags nt
+                JOIN tags t ON nt.tag_id = t.id
+                WHERE nt.note_id = c.id AND t.id = #{tagId}
+                )
+            </if>
+        </where>
+    </select>
+
+
+
+
+    <!--根据标签和用户id插入数据-->
+    <!-- 插入笔记 -->
+    <insert id="insertContent" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_note (user_id, title, content, image, created_at, updated_at)
+        VALUES (#{userId}, #{title}, #{content}, #{image}, CURDATE(), CURDATE())
+    </insert>
+
+    <!-- 插入标签 -->
+    <insert id="insertTag" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_tags (name)
+        VALUES (#{name})
+            ON DUPLICATE KEY UPDATE name = VALUES(name)
+    </insert>
+
+    <!-- 插入笔记标签关联 -->
+    <insert id="insertNoteTagRelation">
+        INSERT INTO t_note_tags (note_id, tag_id)
+        VALUES (#{contentId}, #{tagId})
+    </insert>
+
+
+    <!-- 更新笔记内容 -->
+    <update id="updateContent" parameterType="org.company.note.entity.Content">
+        UPDATE t_note
+        SET
+            title = #{title},
+            content = #{content},
+            image = #{image},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新标签 -->
+    <update id="updateTag" parameterType="org.company.note.entity.Tag">
+        UPDATE t_tags
+        SET name = #{name}
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectNotesByUserIdWithFuzzySearch" resultType="org.company.note.entity.Content">
+        SELECT * FROM t_note
+        WHERE user_id = #{userId}
+          AND (title LIKE CONCAT('%', #{searchTerm}, '%') OR content LIKE CONCAT('%', #{searchTerm}, '%'))
+    </select>
+
+
+</mapper>

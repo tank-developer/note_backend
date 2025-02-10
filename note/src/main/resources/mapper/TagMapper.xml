@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.company.note.mapper.TagMapper">
+
+    <!--        private int id;
+    private String name;
+    -->
+    <!--  定义自定义结果集映射规则  -->
+    <!-- 定义结果集映射 -->
+    <resultMap id="NoteTagMap" type="org.company.note.entity.Tag">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    
+    <!-- 删除标签与笔记的关联 -->
+    <delete id="deleteNoteTagRelationsByTagIdAndUserId">
+        DELETE FROM t_note_tags
+        WHERE tag_id = #{tagId} AND note_id IN (
+            SELECT id FROM t_note WHERE user_id = #{userId}
+        )
+    </delete>
+
+    <!-- 删除标签（如果不再被任何笔记引用） -->
+    <delete id="deleteTagIfNotUsedByUser">
+        DELETE FROM t_tags
+        WHERE id = #{tagId} AND NOT EXISTS (
+            SELECT 1 FROM t_note_tags nt
+                              JOIN t_note dc ON nt.note_id = dc.id
+            WHERE dc.user_id = #{userId} AND nt.tag_id = #{tagId}
+        )
+    </delete>
+
+
+    <!-- 查询当前用户的所有标签 -->
+    <select id="selectTagsByUserId" resultType="org.company.note.entity.Tag">
+        SELECT t.id, t.name
+        FROM t_tags t
+                 JOIN t_note_tags nt ON t.id = nt.tag_id
+                 JOIN t_note dc ON nt.note_id = dc.id
+        WHERE dc.user_id = #{userId}
+    </select>
+
+<!--    <select id="findTagIdByNameAndUserName" resultType="int">-->
+<!--        SELECT COALESCE(t.id, 0) FROM t_tags t-->
+<!--        JOIN t_user_tags ut ON t.id = ut.tag_id-->
+<!--        JOIN t_user u ON ut.user_id = u.uid-->
+<!--        <where>-->
+<!--            <if test="tagName != null and tagName != ''">-->
+<!--                AND t.name = #{tagName}-->
+<!--            </if>-->
+<!--            <if test="userName != null and userName != ''">-->
+<!--                AND u.username = #{userName}-->
+<!--            </if>-->
+<!--        </where>-->
+<!--    </select>-->
+
+
+    <select id="findTagIdByName" resultType="Integer">
+        SELECT  id FROM t_tags WHERE name = #{tagName}
+    </select>
+
+</mapper>

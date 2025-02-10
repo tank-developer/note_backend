@@ -1,0 +1,97 @@
+#spring.application.name=Notice
+server:
+  port: 443
+  ssl:
+    protocol: TLS
+    key-store: classpath:tesles.cn.pfx
+    key-store-password: 6czw976p
+  tomcat:
+    max-swallow-size: 100MB
+
+springdoc:
+  api-docs:
+    enabled: true # 开启OpenApi接口
+    path: /v3/api-docs  # 自定义路径，默认为 "/v3/api-docs"
+  swagger-ui:
+    enabled: true # 开启swagger界面，依赖OpenApi，需要OpenApi同时开启
+    path: /swagger-ui/index.html # 自定义路径，默认为"/swagger-ui/index.html"
+spring:
+  application:
+    name: Notice
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${sky.datasource.host}:3306/biji?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${sky.datasource.username}
+    password: ${sky.datasource.password}
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+  data:
+    redis:
+      host: ${sky.redis.host}
+      port: ${sky.redis.port}
+      password: ${sky.redis.password}
+#      database: ${sky.redis.database} # dev模式下，要打开参考这里https://www.jianshu.com/p/1f10a6c51d7a
+#      url: redis://123456@127.0.0.1:6379 # 这个是建议：https://blog.csdn.net/qq_52825290/article/details/134860527
+      timeout: 5000
+  mail:
+    host: smtp.163.com
+    username: your_email
+    password: xxxx
+    port: 465
+    protocol: smtp
+    default-encoding: utf-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            enable: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+
+  web:
+    verify:
+      mail-limit: 60
+  profiles:
+    active: dev #切换环境 dev/prod
+#redis:
+#  host: ${sky.redis.host}
+#  port: ${sky.redis.port}
+#  password: ${sky.redis.password}
+#  database: ${sky.redis.database}
+
+mybatis:
+  type-aliases-package: com.example.entity
+  mapper-locations: classpath:mapper/*.xml
+#  mapper-locations: classpath:mybatis/mapper/*.xml
+#    mybatis.mapper-locations[0]: classpath:mapper/*.xml
+  configuration:
+    #开启在mybatis处理过程中打印出对应的sql语句功能
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #开启数据库字段自动转换为驼峰命名
+    map-underscore-to-camel-case: true
+#配置分页插件
+#照着写就行，别问为什么
+  pagehelper:
+    dialect: mysql
+    reasonable: true
+    support-methods-arguments: true
+    params: count=countSql
+aliyun:
+  oss:
+    endpoint: xxx
+    access-key-id: xxx
+    access-key-secret: xxx
+    bucket-name: note-content
+
+#logging:
+#  level:
+#    org.springframework: DEBUG
+#    org.hibernate: DEBUG
+#    com.zaxxer.hikari: DEBUG

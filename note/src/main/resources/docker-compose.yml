@@ -1,0 +1,55 @@
+
+
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: 123
+    volumes:
+      - "./note/mysql:/var/lib/mysql"
+    networks:
+      - note-net
+  redis:
+    # 镜像及版本
+    image: redis
+    # 自定义容器名
+    container_name: redis
+    # docker启动时,自动启动该容器
+    restart: always
+    # 挂载映射，可以让数据或配置持久化
+    volumes:
+      # <本地配置文件> : <docker中的配置文件> : <ro:docker容器对该文件只读,默认是rw可读可写>
+      - "./noteredis/redis/redis.conf:/etc/redis/redis.conf"
+      # <本地数据目录> : <docker中的数据目录>
+      - "./noteredis/data:/data"
+      # <本地日志目录> : <docker中的日志目录>
+      # redis不具有自动创建/logs的权限，如果redis.conf中指定的相对位置,则数据目录已经可以映射出日志文件
+      #- ../redis/logs:/logs
+    # docker执行的启动命令
+    command: redis-server /etc/redis/redis.conf
+    ports:
+      # <本地端口> : <docker容器端口>
+      - 6378:6379
+    networks:
+      - note-net
+  note:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: note
+    ports:
+      - "8080:8080"
+    networks:
+      - note-net
+    depends_on:
+      - mysql
+      - redis
+networks:
+  note-net:
+    name: notes
