@@ -17,8 +17,8 @@ import java.io.ByteArrayInputStream;
 public class AliOssUtil {
 
     private String endpoint = "xxx";
-    private String accessKeyId = "xxx";
-    private String accessKeySecret = "xxx";
+    private String key = "xxx";
+    private String secret = "xxx";
     private String bucketName = "note-content";
 
     /**
@@ -31,7 +31,7 @@ public class AliOssUtil {
     public String upload(byte[] bytes, String objectName) {
 
         // 创建OSSClient实例。
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        OSS ossClient = new OSSClientBuilder().build(endpoint, key, secret);
 
         try {
             // 创建PutObject请求。
@@ -74,7 +74,7 @@ public class AliOssUtil {
      * @return
      */
     public String delete(String objectName) {
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        OSS ossClient = new OSSClientBuilder().build(endpoint, key, secret);
         try {
             // 删除文件。
             ossClient.deleteObject(bucketName, objectName);
