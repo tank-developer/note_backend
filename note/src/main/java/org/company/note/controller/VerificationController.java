@@ -89,7 +89,7 @@ public class VerificationController {
     public JsonResult<String> sendMsg(@RequestBody User user) throws Exception {
 //      1.获取手机号
         String phone = user.getPhone();
-
+        
         if(StringUtils.isEmpty(phone)){
             return new JsonResult<>(OK,"发送短信失败");
         }
